@@ -39,6 +39,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* SetDestinationTouchAction;
 
+	/** Up Movement Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* MoveUpKeyPress;
+
+	/** Down Movement Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* MoveDownKeyPress;
+
+	/** Left Movement Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* MoveLeftKeyPress;
+
+	/** Right Movement Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* MoveRightKeyPress;
+
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
@@ -47,6 +63,12 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
+	/** Input handlers for Key Press movement */
+	void MoveLeft();
+	void MoveRight();
+	void MoveUp();
+	void MoveDown();
 
 	/** Input handlers for SetDestination action. */
 	void OnInputStarted();

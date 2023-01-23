@@ -38,6 +38,7 @@ void APistolwoodsPlayerController::SetupInputComponent()
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
+
 		// Setup mouse input events
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Started, this, &APistolwoodsPlayerController::OnInputStarted);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::OnSetDestinationTriggered);
@@ -49,6 +50,56 @@ void APistolwoodsPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::OnTouchTriggered);
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Completed, this, &APistolwoodsPlayerController::OnTouchReleased);
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Canceled, this, &APistolwoodsPlayerController::OnTouchReleased);
+
+		// Setup Keypress input events
+		EnhancedInputComponent->BindAction(MoveLeftKeyPress, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::MoveLeft);
+		EnhancedInputComponent->BindAction(MoveRightKeyPress, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::MoveRight);
+		EnhancedInputComponent->BindAction(MoveUpKeyPress, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::MoveUp);
+		EnhancedInputComponent->BindAction(MoveDownKeyPress, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::MoveDown);
+	}
+}
+
+void APistolwoodsPlayerController::MoveLeft()
+{
+
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn != nullptr)
+	{
+		FVector globalLeft = FVector(0, -1, 0);
+		ControlledPawn->AddMovementInput(globalLeft, 1.0, false);
+	}
+}
+
+void APistolwoodsPlayerController::MoveRight()
+{
+
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn != nullptr)
+	{
+		FVector globalRight = FVector(0, 1, 0);
+		ControlledPawn->AddMovementInput(globalRight, 1.0, false);
+	}
+}
+
+void APistolwoodsPlayerController::MoveUp()
+{
+
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn != nullptr)
+	{
+		FVector globalUp = FVector(1, 0, 0);
+		ControlledPawn->AddMovementInput(globalUp, 1.0, false);
+	}
+}
+
+void APistolwoodsPlayerController::MoveDown()
+{
+
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn != nullptr)
+	{
+		FVector globalDown = FVector(-1, 0, 0);
+		ControlledPawn->AddMovementInput(globalDown, 1.0, false);
 	}
 }
 
