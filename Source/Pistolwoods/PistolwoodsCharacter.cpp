@@ -22,8 +22,8 @@ APistolwoodsCharacter::APistolwoodsCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Do Not Rotate character to moving direction
-	GetCharacterMovement()->bUseControllerDesiredRotation = false; // Rotate character to direction of Controller
+	GetCharacterMovement()->bOrientRotationToMovement = false; // Do Not Rotate character to moving direction
+	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Rotate character to direction of Controller
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;

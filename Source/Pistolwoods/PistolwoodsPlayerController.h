@@ -73,9 +73,10 @@ protected:
 	/** Input handlers for SetDestination action. */
 	void OnInputStarted();
 	void OnSetDestinationTriggered();
-	void OnSetDestinationReleased();
-	void OnTouchTriggered();
-	void OnTouchReleased();
+
+	/** Helper function that faces a stored point*/
+	void FacePointOfInterest();
+	void SetPointOfInterest(FVector destination);
 
 private:
 	FVector CachedDestination;
