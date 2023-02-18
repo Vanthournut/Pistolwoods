@@ -10,6 +10,8 @@
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "DrawDebugHelpers.h"
+#include <Runtime/Engine/Classes/Kismet/GameplayStatics.h>
 
 APistolwoodsPlayerController::APistolwoodsPlayerController()
 {
@@ -17,6 +19,8 @@ APistolwoodsPlayerController::APistolwoodsPlayerController()
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
 	FollowTime = 0.f;
+	bAiming = false;
+	thetaAmplitude = 15.0f;
 }
 
 void APistolwoodsPlayerController::BeginPlay()
@@ -34,6 +38,18 @@ void APistolwoodsPlayerController::BeginPlay()
 	}
 }
 
+void APistolwoodsPlayerController::PlayerTick(float DeltaTime) {
+	// Call the base class
+	Super::PlayerTick(DeltaTime);
+
+	thetaAmplitude -= bAiming * 3 * DeltaTime;
+	thetaAmplitude = FMath::Clamp(thetaAmplitude, 0, 15);
+
+	// Set Mouse Position
+	OnSetDestinationTriggered();
+	CalculateAim();
+}
+
 void APistolwoodsPlayerController::SetupInputComponent()
 {
 	// set up gameplay key bindings
@@ -44,8 +60,11 @@ void APistolwoodsPlayerController::SetupInputComponent()
 	{
 
 		// Setup mouse input events
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::OnSetDestinationTriggered);
+		// EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::OnSetDestinationTriggered);
 
+		// Setup Aiming action events
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::StartAiming);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &APistolwoodsPlayerController::StopAiming);
 
 		// Setup Keypress input events
 		EnhancedInputComponent->BindAction(MoveLeftKeyPress, ETriggerEvent::Triggered, this, &APistolwoodsPlayerController::MoveLeft);
@@ -62,7 +81,7 @@ void APistolwoodsPlayerController::MoveLeft()
 	if (ControlledPawn != nullptr)
 	{
 		FVector globalLeft = FVector(0, -1, 0);
-		ControlledPawn->AddMovementInput(globalLeft, 1.0, false);
+		ControlledPawn->AddMovementInput(globalLeft, 1.0 - bAiming * 0.5, false);
 	}
 }
 
@@ -73,7 +92,7 @@ void APistolwoodsPlayerController::MoveRight()
 	if (ControlledPawn != nullptr)
 	{
 		FVector globalRight = FVector(0, 1, 0);
-		ControlledPawn->AddMovementInput(globalRight, 1.0, false);
+		ControlledPawn->AddMovementInput(globalRight, 1.0 - bAiming * 0.5, false);
 	}
 }
 
@@ -84,7 +103,7 @@ void APistolwoodsPlayerController::MoveUp()
 	if (ControlledPawn != nullptr)
 	{
 		FVector globalUp = FVector(1, 0, 0);
-		ControlledPawn->AddMovementInput(globalUp, 1.0, false);
+		ControlledPawn->AddMovementInput(globalUp, 1.0 - bAiming*0.5, false);
 	}
 }
 
@@ -95,14 +114,14 @@ void APistolwoodsPlayerController::MoveDown()
 	if (ControlledPawn != nullptr)
 	{
 		FVector globalDown = FVector(-1, 0, 0);
-		ControlledPawn->AddMovementInput(globalDown, 1.0, false);
+		ControlledPawn->AddMovementInput(globalDown, 1.0 - bAiming * 0.5, false);
 	}
 }
 
-void APistolwoodsPlayerController::OnInputStarted()
-{
-	StopMovement();
-}
+//void APistolwoodsPlayerController::OnInputStarted()
+//{
+//	StopMovement();
+//}
 
 // Triggered every frame when the input is held down
 void APistolwoodsPlayerController::OnSetDestinationTriggered()
@@ -135,8 +154,62 @@ void APistolwoodsPlayerController::FacePointOfInterest()
 	{
 		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
 
+		aimVector = WorldDirection.GetSafeNormal();
+
 		// Face cached point
 		SetControlRotation(WorldDirection.Rotation());
 	}
 
+}
+
+void APistolwoodsPlayerController::StartAiming() {
+
+	bAiming = true;
+
+	FHitResult Hit;
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn != nullptr)
+	{
+		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+
+		// Face cached point
+		SetControlRotation(WorldDirection.Rotation());
+
+
+		FVector TraceStart = ControlledPawn->GetActorLocation();
+		// FVector TraceEnd = ControlledPawn->GetActorLocation() + WorldDirection.GetSafeNormal() * 500.0f;
+		FVector TraceEnd = ControlledPawn->GetActorLocation() + aimVector * 1000.0f;
+
+		TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_Visibility;
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+
+		GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, TraceChannelProperty, QueryParams);
+
+		DrawDebugLine(GetWorld(), TraceStart, 
+			Hit.bBlockingHit ? TraceStart + aimVector * Hit.Distance : TraceEnd,
+			Hit.bBlockingHit ? FColor::Blue : FColor::Red, false, 0.0f, 0, 3.0f);
+
+		if (Hit.bBlockingHit)
+		{
+			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, 0.0f, 1, FColor::Red, false, 1.0f, 1, 10.0f);
+		}
+	}
+	
+}
+
+void APistolwoodsPlayerController::StopAiming()
+{
+	thetaAmplitude = 15.0f;
+	bAiming = false;
+	SetInputMode(FInputModeGameOnly());
+
+	return;
+}
+
+void APistolwoodsPlayerController::CalculateAim()
+{
+	aimVector = aimVector.ToOrientationRotator().Add(0, thetaAmplitude * sin(UGameplayStatics::GetRealTimeSeconds(GetWorld())*PI), 0).Vector();
+	return;
 }

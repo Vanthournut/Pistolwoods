@@ -55,11 +55,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* MoveRightKeyPress;
 
+	/** Aim Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* AimAction;
+
+	/** Fire Weapon */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* FireAction;
+
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
-	uint32 bMoveToMouseCursor : 1;
+	//uint32 bMoveToMouseCursor : 1;
 
 	virtual void SetupInputComponent() override;
+	virtual void PlayerTick(float DeltaTime) override;
 	
 	// To add mapping context
 	virtual void BeginPlay();
@@ -71,8 +80,13 @@ protected:
 	void MoveDown();
 
 	/** Input handlers for SetDestination action. */
-	void OnInputStarted();
+	//void OnInputStarted();
 	void OnSetDestinationTriggered();
+
+	/** Input handlers for Aiming action*/
+	void StartAiming();
+	void StopAiming();
+	void CalculateAim();
 
 	/** Helper function that faces a stored point*/
 	void FacePointOfInterest();
@@ -80,6 +94,9 @@ protected:
 
 private:
 	FVector CachedDestination;
+	FVector aimVector; // Displacement angle of aim
+	float thetaAmplitude; // Maximum displacement angle of aim
+	bool bAiming; // Is the aim action active
 
 	bool bIsTouch; // Is it a touch device
 	float FollowTime; // For how long it has been pressed
